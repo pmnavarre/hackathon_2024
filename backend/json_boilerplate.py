@@ -5,7 +5,8 @@ from openai import OpenAI
 
 
 def json_converter(prompt: str) -> json:
-    prompt = prompt + " Return the response in json."
+    prompt = " Use this prompt to return 3 key words, one for each of these categories\
+        : genre, region, and year. If you are unsure about any of these categories based on the prompt, return None for the category. Return the response in json." + prompt
     data = {'prompt': prompt, 
             'response': 'This is a response based on the prompt'}
     
