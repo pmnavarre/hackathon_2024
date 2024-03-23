@@ -1,6 +1,7 @@
 import streamlit as st
 import backend.tmdb
 import time
+from backend.json_boilerplate import json_converter
 
 # Title of the main page
 st.set_page_config(layout="wide")
@@ -53,6 +54,7 @@ movie_params = {
 #         time.sleep(0.1)
 #
 #
+
 if page == "Main Page":
     st.header("Welcome to the Main Page")
     # st.write_stream(char_generator("Discover something new!"))
@@ -61,8 +63,11 @@ if page == "Main Page":
         submit_button = st.form_submit_button("Submit")
 
     if submit_button:
+        st.write(f"Generating keywords for movie recommendations based on: {input_prompt}")
+        movie_params = json_converter(input_prompt)
         tmdb = backend.tmdb.TMDB(st.secrets["TMDB_API_KEY"])
-        movie_params["primary_release_year"] = input_prompt.split(" ")[0]
+        st.write(movie_params)
+        # movie_params["primary_release_year"] = input_prompt.split(" ")[0]
         movies = tmdb.discover_movies(movie_params)
         display_movies(movies["results"], cols=6)
         st.write(f"You submitted: {input_prompt}")

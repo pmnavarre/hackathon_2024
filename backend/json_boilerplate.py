@@ -1,12 +1,27 @@
 import json
 import requests
+import streamlit as st
 import os
 from openai import OpenAI
 
 
 def json_converter(prompt: str) -> json:
-    prompt = " Use this prompt to return 3 key words, one for each of these categories\
-        : genre, region, and year. If you are unsure about any of these categories based on the prompt, return None for the category. Return the response in json." + prompt
+    parameters = {
+        "region": "",  # string
+        "genres": "",
+        "ending": "", # open or close 
+        "overall mood": "", #sad, happy
+    }
+    # end_paramters = { 
+    #     "with_keywords": "horror genres, resolved ending, sad overall mood"
+    # }
+    n = len(parameters.keys())
+
+    prompt = f"Use this prompt to return at least {n} key words to use to get movie recommendations, at least one and at most three word for each of these categories: {parameters.keys()}. \
+        For genres, reference existing genres in the TMDB API. For ending, return either 'cliffhanger' or 'resolved'. \
+        If you are unsure about any of these categories based on the prompt, return None for all categories except genres. \
+        Return the response in json." + prompt
+    
     data = {'prompt': prompt, 
             'response': 'This is a response based on the prompt'}
     
@@ -16,10 +31,8 @@ def json_converter(prompt: str) -> json:
 
     client = OpenAI(
         # This is the default and can be omitted
-        api_key=os.environ.get("OPENAI_API_KEY")
+        api_key=st.secrets["OPENAI_API_KEY"] 
     )
-
-
 
     # prompt = f"Given the following movie description: \"{json_file}\", provide the genre, target audience, and suggested rating."
 
@@ -35,8 +48,7 @@ def json_converter(prompt: str) -> json:
         response_format={"type": "json_object"}
     )
     print("Chat completion: ", chat_completion) 
-    return json.loads(chat_completion.choices[0].message.content)['response']
-
+    return json.loads(chat_completion.choices[0].message.content)
 
 # res = json_converter("Say something funny please! Return the response in json.")
 # print(res)
