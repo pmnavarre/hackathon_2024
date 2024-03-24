@@ -1,6 +1,6 @@
 # UC Hacks 24
 
-Devlopers: Patrick + Drew <3
+Devlopers: Patrick, Drew, Chloe, Theo, Olivia
 
 ## Inspiration
 
