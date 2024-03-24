@@ -19,5 +19,3 @@ def display_movies(movies, cols=6, width=150, tmdb=None):
                 ):
                     tmdb.add_to_watchlist(movie["id"])
                     st.toast("Added to watchlist!", icon="🎥")
-                    # st.write(movie)
-                    # st.write(f"Rating: {movie['vote_average']}")

@@ -108,8 +108,6 @@ def header():
 
 def run():
     st.set_page_config(layout="wide", page_icon="./public/flickfinder.png")
-    # page = st.session_state.get("page", "Main Page")
-
     sidebar()
     header()
 

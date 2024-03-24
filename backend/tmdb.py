@@ -83,30 +83,3 @@ if __name__ == "__main__":
         "sort_by": "popularity.desc",
         "primary_release_year": "2023",
     }
-
-    tmdb = TMDB(st.secrets["TMDB_API_KEY"])
-    # res = tmdb.discover_movies(params)
-    # print(json.dumps(res, indent=4))
-    # print(res["results"][0].keys())
-    # print(len(res["results"]))
-    # print(res.keys())
-    #
-    # for movie in res["results"]:
-    #     print(movie["title"])
-    #     print(
-    #         movie["poster_path"]
-    #     )  # https://image.tmdb.org/t/p/w200/iuFNMS8U5cb6xfzi51Dbkovj7vM.jpg
-    #     print(movie["vote_average"])
-    #
-    # # response = tmdb.add_to_watchlist(res["results"][0]["id"])
-    # # print(response)
-    # print(tmdb.get_watchlist())
-    # movie = tmdb.get_popular_movies()["results"][1]
-    # res = tmdb.get_watch_providers(19)["results"]["US"]
-    # types = ["rent", "buy", "flatrate"]
-    # for t in types:
-    #     for provider in res[t]:
-    #         print(provider["provider_name"], provider["provider_id"])
-    # print(json.dumps(res, indent=4))
-    print(tmdb.search_keyword("funny"))
-    # print(tmdb.get_person("Tom Cruise")["results"][0]["id"])

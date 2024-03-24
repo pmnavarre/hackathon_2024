@@ -10,7 +10,6 @@ def watchlist():
     tmdb = TMDB(api_key=st.secrets["TMDB_API_KEY"])
     wlist = tmdb.get_watchlist()
     display_movies(wlist["results"])
-    # st.write(wlist)
 
 
 watchlist()

@@ -13,8 +13,8 @@ def invoke_openai(prompt: str) -> Union[dict, None]:
                 "content": prompt,
             }
         ],
-        # model="gpt-3.5-turbo",
-        model="gpt-4-0125-preview",
+        model="gpt-3.5-turbo",
+        # model="gpt-4-0125-preview",
         response_format={"type": "json_object"},
     )
 
@@ -55,10 +55,3 @@ def extract_keywords(input: str, keywords: list) -> Union[dict, None]:
     The dictionary of keywords and ids is as follows: {keywords}
         """
     return invoke_openai(prompt)
-
-
-if __name__ == "__main__":
-    res = json_converter(
-        "I want to watch a movie with a horror genre, cliffhanger ending, and a sad overall mood."
-    )
-    print(res)
