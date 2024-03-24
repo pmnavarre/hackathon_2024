@@ -58,38 +58,37 @@ def sidebar():
         )
 
 
-def get_prompt_params(input_prompt, tmdb: TMDB):
+def get_prompt_params(input_prompt, tmdb: TMDB) -> tuple:
     with open("./backend/assets/genres.json") as f:
         genres = json.load(f)
-    movie_params = json_converter(input_prompt, genres.keys())
+    llm_params = json_converter(input_prompt, genres.keys())
     parsed_params = {}
     # st.write(movie_params)
-    if movie_params is None:
+    if llm_params is None:
         st.error("We could not generate keywords for your input. Please try again.")
-        return
+        return (None, None)
     parsed_params["with_genres"] = "|".join(
         [
             str(genres[genre.strip()])
-            for genre in movie_params["genres"]
+            for genre in llm_params["genres"]
             if genre.strip() in genres
         ]
     )
-    sep = "," if movie_params["all_actors"] else "|"
+    sep = "," if llm_params["all_actors"] else "|"
     parsed_params["with_cast"] = sep.join(
-        [tmdb.get_actor_id(actor.strip()) for actor in movie_params["actors"]]
+        [tmdb.get_actor_id(actor.strip()) for actor in llm_params["actors"]]
     )
     keywords = extract_keywords(
         input_prompt,
-        [tmdb.search_keyword(keyword) for keyword in movie_params["keywords"]],
+        [tmdb.search_keyword(keyword) for keyword in llm_params["keywords"]],
     )
     if keywords is None:
         st.error("We could not extract keywords for your input. Please try again.")
-        return
-    # st.write(keywords)
+        return (None, None)
     parsed_params["with_keywords"] = "|".join(
         [str(id) for id in keywords.values() if id]
     )
-    return parsed_params
+    return parsed_params, llm_params
 
 
 def validate_params():
@@ -131,16 +130,16 @@ def run():
     if submit_button and validate_params():
         with st.spinner("Generating movie recommendations..."):
             tmdb = TMDB(st.secrets["TMDB_API_KEY"])
-            prompt_params = get_prompt_params(input_prompt, tmdb)
+            prompt_params, llm_params = get_prompt_params(input_prompt, tmdb)
             MOVIE_PARAMS.update(prompt_params if prompt_params else {})
-            MOVIE_PARAMS.pop("with_keywords", None)
+            # MOVIE_PARAMS.pop("with_keywords", None)
 
             movies = (
                 tmdb.discover_movies(MOVIE_PARAMS, num_movies=MAX_RESULTS[0])
                 if submit_button
                 else st.session_state.movies
             )
-            if len(movies) == 0:
+            if len(movies) < 5:
                 MOVIE_PARAMS.pop("with_keywords")
                 movies = tmdb.discover_movies(MOVIE_PARAMS, num_movies=MAX_RESULTS[0])
             display_movies(movies, cols=6, tmdb=tmdb)
@@ -148,6 +147,9 @@ def run():
             # st.toast("We found some movies for you!", icon="🎥")
 
             with st.expander("Attributes", expanded=False):
+                st.write("Params returned from LLM:")
+                st.write(llm_params)
+                st.write("Params sent to TMDB API:")
                 st.write(MOVIE_PARAMS)
 
 

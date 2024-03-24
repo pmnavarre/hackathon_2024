@@ -36,13 +36,16 @@ def json_converter(input: str, genres: list) -> Union[dict, None]:
     }
 
     # 3/ For ending, return either cliffhanger ending or resolved ending if given a related keyword or none.
-    prompt = f"""You are a data scientist working on a movie recommendation system. Your task is to generate keywords for movie recommendations based on the given prompt. The keywords should be in JSON format (specifically as {parameters.keys()}). Always return a list for each category, even if it is empty.
+    prompt = f"""You are a data scientist working on a movie recommendation system. Your task is to generate attributes for movie recommendations based on the given prompt. The attributes should be in JSON format (specifically as {parameters.keys()}). Always return a list for each category, even if it is empty.
 
     Please make sure you complete the objective above with the following rules:
     1/ For genres, return the relevant genres from the list {genres}. They must be comma separated and capitalized.
     2/ For keywords, this should be 1 or 2 words to capture the uniqueness of the prompt. Return an empty list if there are no relevant keywords.
-    3/ For actors, only return the name of an actor if it specifically mentioned in the prompt. If the prompt requires all of the actors to be in the same movie, set the all_actors flag to True. Otherwise, if the prompt does not require all of the actors to be in the same movie, set the all_actors flag to False.
+    3/ For actors, only return the name of an actor if it specifically mentioned in the prompt. If it is a well known actor, return the full name even if their full name is not in the prompt. Return an empty list if there are no relevant actors.
+    4/ If the prompt requires all of the actors to be in the same movie, set the all_actors flag to TRUE. Example: if the prompt says actor 1 AND actor 2.
+    5/ If the prompt does NOT require all of the actors to be in the same movie, set the all_actors flag to TRUE. Example: if the prompt says actor 1 OR actor 2.
 
+    Be sure to follow these instructions exactly. Do not include any additional information in the response.
     If you are unsure about any category based on the prompt, return None for that category. The prompt is:\n\n{input}"""
     return invoke_openai(prompt)
 

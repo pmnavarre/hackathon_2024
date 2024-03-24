@@ -70,8 +70,10 @@ class TMDB:
     def get_actor_id(self, person_id: str) -> str:
         url = "https://api.themoviedb.org/3/search/person"
         params = {"query": person_id, "language": "en-US"}
-        response = requests.get(url, headers=self.headers, params=params)
-        return str(response.json()["results"][0]["id"])
+        response = requests.get(url, headers=self.headers, params=params).json()
+        if "results" not in response or not response["results"]:
+            return ""
+        return str(response["results"][0]["id"])
 
 
 if __name__ == "__main__":
@@ -83,3 +85,6 @@ if __name__ == "__main__":
         "sort_by": "popularity.desc",
         "primary_release_year": "2023",
     }
+    tmdb = TMDB(st.secrets["TMDB_API_KEY"])
+    k = tmdb.search_keyword("planes")
+    print(k)
