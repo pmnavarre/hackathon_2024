@@ -42,7 +42,7 @@ def sidebar():
         sorted(WATCH_PROVIDERS.keys()),
     )
     MOVIE_PARAMS["vote_average.gte"] = st.sidebar.slider(
-        "Minimum rating", 0.0, 10.0, 5.7
+        "Minimum rating", 0.0, 10.0, 4.3
     )
     MAX_RESULTS[0] = st.sidebar.slider("Max results", 20, 100, 20)
 
