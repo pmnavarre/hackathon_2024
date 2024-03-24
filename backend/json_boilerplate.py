@@ -46,7 +46,7 @@ def json_converter(input: str, genres: list) -> Union[dict, None]:
     5/ If the prompt does NOT require all of the actors to be in the same movie, set the all_actors flag to TRUE. Example: if the prompt says actor 1 OR actor 2.
 
     Be sure to follow these instructions exactly. Do not include any additional information in the response.
-    If you are unsure about any category based on the prompt, return None for that category. The prompt is:\n\n{input}"""
+    If you are unsure about any category based on the prompt, return None for that category. The prompt is:\n\nA movie with {input}"""
     return invoke_openai(prompt)
 
 
