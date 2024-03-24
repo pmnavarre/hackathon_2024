@@ -132,7 +132,6 @@ def run():
             tmdb = TMDB(st.secrets["TMDB_API_KEY"])
             prompt_params, llm_params = get_prompt_params(input_prompt, tmdb)
             MOVIE_PARAMS.update(prompt_params if prompt_params else {})
-            # MOVIE_PARAMS.pop("with_keywords", None)
 
             movies = (
                 tmdb.discover_movies(MOVIE_PARAMS, num_movies=MAX_RESULTS[0])
@@ -144,7 +143,6 @@ def run():
                 movies = tmdb.discover_movies(MOVIE_PARAMS, num_movies=MAX_RESULTS[0])
             display_movies(movies, cols=6, tmdb=tmdb)
             st.session_state.movies = movies
-            # st.toast("We found some movies for you!", icon="🎥")
 
             with st.expander("Attributes", expanded=False):
                 st.write("Params returned from LLM:")

@@ -1,6 +1,8 @@
-# UC Hacks 24
+# FlickFinder (UC Hacks 24)
 
 Devlopers: Patrick, Drew, Chloe, Theo, Olivia
+
+[Picture of the homepage](./public/demo.png)
 
 ## Inspiration
 
