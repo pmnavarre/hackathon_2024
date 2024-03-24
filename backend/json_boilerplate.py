@@ -1,46 +1,11 @@
 import json
-import requests
 import streamlit as st
-import os
 from openai import OpenAI
+from typing import Union
 
 
-def json_converter(prompt: str) -> json:
-    parameters = {
-        "region": "",  # string
-        "genres": "",
-        "ending": "", 
-        "overall mood": ""
-        # "with_keywords": ""
-    }
-    # end_paramters = { 
-    #     "with_keywords": "horror genres, resolved ending, sad overall mood"
-    # }
-    n = len(parameters.keys())
-
-    prompt = f"I want to generate keywords for the given categories of movie-related information into JSON format. \
-        Your goal is to a JSON object containing a sentence consists of at least one word for each of these categories: {parameters.keys()}. \
-        For example, for genres, return the sentence horror, action. They must be comma separated and referenced from the existing genres in the TMDB API. \
-        For overall mood, should be one word response. For ending, return either cliffhanger ending or resolved ending if given a related keyword or none. \
-        If you are unsure about any of these categories based on the prompt, return None for all categories except genres.\
-        Return the response in json." + prompt
-    # For with_keywords, reference existing genres in the TMDB API. \
-
-    data = {'prompt': prompt, 
-            'response': 'This is a response based on the prompt'}
-
-    with open('output.json', 'w') as json_file:
-        json.dump(data, json_file, indent=4)
-    
-
-    client = OpenAI(
-        # This is the default and can be omitted
-        api_key=st.secrets["OPENAI_API_KEY"] 
-    )
-
-    # prompt = f"Given the following movie description: \"{json_file}\", provide the genre, target audience, and suggested rating."
-
-    # print("got here")
+def invoke_openai(prompt: str) -> Union[dict, None]:
+    client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
     chat_completion = client.chat.completions.create(
         messages=[
             {
@@ -48,22 +13,52 @@ def json_converter(prompt: str) -> json:
                 "content": prompt,
             }
         ],
-        model="gpt-3.5-turbo",
-        response_format={"type": "json_object"}
+        # model="gpt-3.5-turbo",
+        model="gpt-4-0125-preview",
+        response_format={"type": "json_object"},
     )
 
-    json_params = json.loads(chat_completion.choices[0].message.content)
-    final_params, with_keywords = {}, ""
+    if chat_completion.choices[0].message.content is None:
+        return None
+    return json.loads(chat_completion.choices[0].message.content)
 
-    for json_param in json_params.keys(): 
-        if json_param not in ['region', 'genres']:
-            with_keywords += json_params[json_param] + ", "
 
-        else: 
-            final_params[json_param] = json_params[json_param]
-    final_params["with_keywords"] = with_keywords[:-2]
+def json_converter(input: str, genres: list) -> Union[dict, None]:
+    parameters = {
+        # "region": "",  # string
+        "genres": [],
+        # "ending": "",
+        # "overall mood": "",
+        "keywords": [],
+        "actors": [],
+        "all_actors": False,
+        # "with_keywords": ""
+    }
 
-    return final_params
+    # 3/ For ending, return either cliffhanger ending or resolved ending if given a related keyword or none.
+    prompt = f"""You are a data scientist working on a movie recommendation system. Your task is to generate keywords for movie recommendations based on the given prompt. The keywords should be in JSON format (specifically as {parameters.keys()}). Always return a list for each category, even if it is empty.
 
-# res = json_converter("Say something funny please! Return the response in json.")
-# print(res)
+    Please make sure you complete the objective above with the following rules:
+    1/ For genres, return the relevant genres from the list {genres}. They must be comma separated and capitalized.
+    2/ For keywords, this should be a short list of words describing the overall mood. 
+    3/ For actors, only return the name of an actor if it specifically mentioned in the prompt. If the prompt requires all of the actors to be in the same movie, set the all_actors flag to True. Otherwise, if the prompt does not require all of the actors to be in the same movie, set the all_actors flag to False.
+
+    If you are unsure about any category based on the prompt, return None for that category. The prompt is:\n\n{input}"""
+    return invoke_openai(prompt)
+
+
+def extract_keywords(input: str, keywords: list) -> Union[dict, None]:
+    prompt = f"""You are a data scientist working on a movie recommendation system. Your task is to determine keywords for movie recommendations based on the given prompt. You should return a JSON dictionary of the ids (in the form "keyword": "id") associated with only the relevant keywords to the prompt. Do not include any irrelevant keywords. Only return the top 2-3 keywords if there are more than 3.
+
+    The prompt is: {input}
+
+    The dictionary of keywords and ids is as follows: {keywords}
+        """
+    return invoke_openai(prompt)
+
+
+if __name__ == "__main__":
+    res = json_converter(
+        "I want to watch a movie with a horror genre, cliffhanger ending, and a sad overall mood."
+    )
+    print(res)

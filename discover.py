@@ -1,0 +1,153 @@
+import json
+import streamlit as st
+from backend.tmdb import TMDB
+from backend.json_boilerplate import json_converter, extract_keywords
+from backend.utils import display_movies
+
+MAX_RESULTS = [20]
+
+MOVIE_PARAMS = {
+    "include_adult": "false",
+    "include_video": "false",
+    "language": "en-US",
+    "sort_by": "popularity.desc",
+    "watch_region": "US",
+}
+
+WATCH_PROVIDERS = {
+    "Netflix": 8,
+    "Amazon Prime Video": 119,
+    "Disney+": 337,
+    "HBO Max": 384,
+    "Apple TV": 2,
+    "YouTube": 192,
+}
+
+
+def sidebar():
+    st.sidebar.title("Filters")
+    year_opts = ["Any"] + [str(i) for i in range(2024, 1969, -1)]
+    year = st.sidebar.selectbox("Year", year_opts)
+    min_runtime = st.sidebar.selectbox(
+        "Minimum runtime", ["Any", "90 min", "120 min", "150 min"]
+    )
+    max_runtime = st.sidebar.selectbox(
+        "Maximum runtime", ["Any", "90 min", "120 min", "150 min"]
+    )
+    with_watch_providers = st.sidebar.multiselect(
+        "Streaming Platforms",
+        sorted(WATCH_PROVIDERS.keys()),
+    )
+    MOVIE_PARAMS["vote_average.gte"] = st.sidebar.slider(
+        "Minimum rating", 0.0, 10.0, 5.7
+    )
+    MAX_RESULTS[0] = st.sidebar.slider("Max results", 20, 100, 20)
+
+    if year != "Any":
+        MOVIE_PARAMS["primary_release_year"] = str(year)
+    if min_runtime != "Any":
+        MOVIE_PARAMS["with_runtime.gte"] = str(min_runtime)
+    if max_runtime != "Any":
+        MOVIE_PARAMS["with_runtime.lte"] = str(max_runtime)
+    if with_watch_providers:
+        MOVIE_PARAMS["with_watch_providers"] = "|".join(
+            [str(WATCH_PROVIDERS[wp]) for wp in with_watch_providers]
+        )
+
+
+def get_prompt_params(input_prompt, tmdb: TMDB):
+    with open("./backend/assets/genres.json") as f:
+        genres = json.load(f)
+    movie_params = json_converter(input_prompt, genres.keys())
+    parsed_params = {}
+    # st.write(movie_params)
+    if movie_params is None:
+        st.error("We could not generate keywords for your input. Please try again.")
+        return
+    parsed_params["with_genres"] = "|".join(
+        [
+            str(genres[genre.strip()])
+            for genre in movie_params["genres"]
+            if genre.strip() in genres
+        ]
+    )
+    sep = "," if movie_params["all_actors"] else "|"
+    parsed_params["with_cast"] = sep.join(
+        [tmdb.get_actor_id(actor.strip()) for actor in movie_params["actors"]]
+    )
+    keywords = extract_keywords(
+        input_prompt,
+        [tmdb.search_keyword(keyword) for keyword in movie_params["keywords"]],
+    )
+    if keywords is None:
+        st.error("We could not extract keywords for your input. Please try again.")
+        return
+    # st.write(keywords)
+    parsed_params["with_keywords"] = "|".join(
+        [str(id) for id in keywords.values() if id]
+    )
+    return parsed_params
+
+
+def validate_params():
+    if "with_runtime.gte" in MOVIE_PARAMS and "with_runtime.lte" in MOVIE_PARAMS:
+        if int(MOVIE_PARAMS["with_runtime.gte"]) > int(
+            MOVIE_PARAMS["with_runtime.lte"]
+        ):
+            st.error("Minimum runtime must be less than maximum runtime")
+            return False
+    return True
+
+
+def header():
+    # cols = st.columns(8)
+    # mid = cols[3]
+    # with mid:
+    st.title(" FlickFinder")
+
+
+def run():
+    st.set_page_config(layout="wide", page_icon="./public/flickfinder.png")
+    # page = st.session_state.get("page", "Main Page")
+
+    sidebar()
+    header()
+
+    st.header("Discover something new!")
+    with st.form(key="my_form"):
+        input_prompt = st.text_input(
+            "Provide a description of what you want to watch:", ""
+        )
+        submit_button = st.form_submit_button(
+            "Search", type="primary", use_container_width=True
+        )
+
+    if "movies" in st.session_state:
+        if not submit_button:
+            tmdb = TMDB(st.secrets["TMDB_API_KEY"])
+            display_movies(st.session_state.movies, cols=6, tmdb=tmdb)
+
+    if submit_button and validate_params():
+        with st.spinner("Generating movie recommendations..."):
+            tmdb = TMDB(st.secrets["TMDB_API_KEY"])
+            prompt_params = get_prompt_params(input_prompt, tmdb)
+            MOVIE_PARAMS.update(prompt_params if prompt_params else {})
+
+            movies = (
+                tmdb.discover_movies(MOVIE_PARAMS, num_movies=MAX_RESULTS[0])
+                if submit_button
+                else st.session_state.movies
+            )
+            if len(movies) == 0:
+                MOVIE_PARAMS.pop("with_keywords")
+                movies = tmdb.discover_movies(MOVIE_PARAMS, num_movies=MAX_RESULTS[0])
+            display_movies(movies, cols=6, tmdb=tmdb)
+            st.session_state.movies = movies
+            # st.toast("We found some movies for you!", icon="🎥")
+
+            with st.expander("Attributes", expanded=False):
+                st.write(MOVIE_PARAMS)
+
+
+if __name__ == "__main__":
+    run()
