@@ -2,7 +2,7 @@
 
 Devlopers: Patrick, Drew, Chloe, Theo, Olivia
 
-[Picture of the homepage](./public/demo.png)
+![Picture of the homepage](./public/demo.png)
 
 ## Inspiration
 
