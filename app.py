@@ -63,8 +63,12 @@ def validate_params():
 
 def run():
     st.set_page_config(layout="wide")
-    st.title("Movie Recommendation System")
+    st.title("FlickFinder")
     # page = st.session_state.get("page", "Main Page")
+    
+    image_path = "images/flick.finder v3.png"
+    
+    st.image(image_path, width=150, use_column_width=False)
 
     sidebar()
 

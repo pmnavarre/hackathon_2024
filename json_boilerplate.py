@@ -28,7 +28,7 @@ def json_converter(prompt: str) -> json:
                 "content": prompt,
             }
         ],
-        model="gpt-3.5-turbo",
+        model="gpt-4-0125",
         response_format={"type": "json_object"}
     )
     return json.loads(chat_completion.choices[0].message.content)['response']

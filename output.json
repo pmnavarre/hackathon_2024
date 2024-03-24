@@ -1,0 +1,4 @@
+{
+    "prompt": "I want to generate keywords for the given categories of movie-related information into JSON format.         Your goal is to a JSON object containing a sentence consists of at least one word for each of these categories: dict_keys(['region', 'genres', 'ending', 'overall mood']).         For example, for genres, return the sentence horror, action. They must be comma separated and referenced from the existing genres in the TMDB API.         For overall mood, should be one word response. For ending, return either cliffhanger ending or resolved ending if given a related keyword or none.         If you are unsure about any of these categories based on the prompt, return None for all categories except genres.        Return the response in json.",
+    "response": "This is a response based on the prompt"
+}
